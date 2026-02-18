@@ -1,16 +1,288 @@
 ---
+import Layout from '../layouts/Layout.astro';
+import { getAPOD } from '../services/nasa';
+import { formatDateLocale } from '../utils/dates';
 
+const apod = await getAPOD();
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="Space Explorer - Astronomy Picture of the Day">
+  <section class="hero">
+    <div class="hero-badge">
+      <span class="badge-dot"></span>
+      En vivo desde NASA
+    </div>
+    <h2 class="hero-title">Imagen Astronómica del Día</h2>
+    <p class="hero-date">{formatDateLocale(apod.date)}</p>
+  </section>
+
+  <article class="apod-card">
+    <div class="image-container">
+      {apod.media_type === 'image' ? (
+        <img src={apod.url} alt={apod.title} loading="lazy" />
+      ) : (
+        <iframe src={apod.url} title={apod.title} allowfullscreen></iframe>
+      )}
+      <div class="image-overlay"></div>
+    </div>
+    
+    <div class="content">
+      <div class="content-header">
+        <h3 class="content-title">{apod.title}</h3>
+        {apod.copyright && (
+          <span class="copyright-badge">
+            📸 {apod.copyright}
+          </span>
+        )}
+      </div>
+      
+      <p class="explanation">{apod.explanation}</p>
+      
+      <div class="content-footer">
+        <a href={apod.hdurl || apod.url} target="_blank" class="btn-primary">
+          <span>Ver en HD</span>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M4.5 10H15.5M15.5 10L10.5 5M15.5 10L10.5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+        <button class="btn-secondary">
+          ❤️ Guardar
+        </button>
+        <a href="/gallery" class="btn-secondary">
+          🖼️ Ver Galería
+        </a>
+      </div>
+    </div>
+  </article>
+</Layout>
+<style>
+  .hero {
+    text-align: center;
+    margin-bottom: 4rem;
+    animation: fadeIn 0.8s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--accent-primary);
+    margin-bottom: 1.5rem;
+  }
+  
+  .badge-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--accent-primary);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(0.8);
+    }
+  }
+  
+  .hero-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 700;
+    margin-bottom: 1rem;
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+  }
+  
+  .hero-date {
+    color: var(--text-secondary);
+    font-size: 1.125rem;
+    text-transform: capitalize;
+  }
+  
+  .apod-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 
+      0 20px 60px rgba(0, 0, 0, 0.3),
+      0 0 0 1px rgba(99, 102, 241, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: slideUp 1s ease-out;
+  }
+  
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(40px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .apod-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 
+      0 24px 80px rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(99, 102, 241, 0.2);
+  }
+  
+  .image-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+    background: var(--bg-secondary);
+  }
+  
+  .image-container img,
+  .image-container iframe {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+  
+  .apod-card:hover .image-container img {
+    transform: scale(1.05);
+  }
+  
+  .image-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(to top, rgba(11, 13, 23, 0.8), transparent);
+    pointer-events: none;
+  }
+  
+  .content {
+    padding: 2.5rem;
+  }
+  
+  .content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  
+  .content-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 700;
+    color: var(--text-primary);
+    flex: 1;
+    min-width: 200px;
+  }
+  
+  .copyright-badge {
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    color: var(--accent-secondary);
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  
+  .explanation {
+    line-height: 1.8;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    font-size: 1.0625rem;
+  }
+  
+  .content-footer {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    padding: 0.875rem 1.75rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    border: none;
+    font-family: inherit;
+  }
+  
+  .btn-primary {
+    background: var(--accent-gradient);
+    color: white;
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 30px rgba(99, 102, 241, 0.6);
+  }
+  
+  .btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  @media (max-width: 768px) {
+    .content {
+      padding: 1.5rem;
+    }
+    
+    .content-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .btn-primary,
+    .btn-secondary {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
